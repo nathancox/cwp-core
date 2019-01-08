@@ -50,13 +50,16 @@ class InitialisationMiddleware implements HTTPMiddleware
 
     public function process(HTTPRequest $request, callable $delegate)
     {
-        $response = $delegate($request);
+        
 
         if ($this->config()->get('egress_proxy_default_enabled')) {
             $this->configureEgressProxy();
         }
         
         $this->configureProxyDomainExclusions();
+        
+        // move this further down so configureEgressProxy is called BEFORE the page is rendered.
+        $response = $delegate($request);
 
         if ($this->config()->get('xss_protection_enabled') && $response) {
             $response->addHeader('X-XSS-Protection', '1; mode=block');
